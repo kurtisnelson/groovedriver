@@ -55,7 +55,9 @@ public class SplashActivity extends GrooveActivity implements Firebase.AuthState
 
         if(mPreferences.hasFbToken() && mFirebase.getClient().getAuth() != null) {
             startService(GatherService.newIntent(this));
-            startActivity(NearbyActivity.newIntent(this));
+            Intent nearIntent = NearbyActivity.newIntent(this);
+            nearIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(nearIntent);
             finish();
         }
     }
