@@ -26,6 +26,8 @@ public class FirebaseClient {
         Firebase ref = mFirebase.child("scrapedPositions/lyft");
         DateTime time = new DateTime();
         for(RideTypesResponse.RideType rideType : rideTypes) {
+            if(rideType.drivers == null)
+                continue;
             for(RideTypesResponse.Driver driver : rideType.drivers) {
                 Firebase carRef = ref.child(driver.id);
                 Map<String, Object> map = new DriverPosition(time, driver, rideType.id).toMap();
