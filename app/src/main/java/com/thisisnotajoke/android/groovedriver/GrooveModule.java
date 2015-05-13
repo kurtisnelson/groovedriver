@@ -37,14 +37,14 @@ import org.joda.time.LocalDate;
         library = false
 )
 
-public final class GuberModule {
+public final class GrooveModule {
     protected GrooveApplication mApplication;
     protected Context mContext;
 
-    public GuberModule() {
+    public GrooveModule() {
     }
 
-    public GuberModule(GrooveApplication application) {
+    public GrooveModule(GrooveApplication application) {
         mApplication = application;
         mContext = application.getApplicationContext();
     }
@@ -61,7 +61,7 @@ public final class GuberModule {
 
     @Provides
     @Singleton
-    LyftClient provideBouncerClient(final Gson gson, NetworkConnectivityManager ncm, LyftRequestInterceptor interceptor, LyftErrorHandler errorHandler) {
+    LyftClient provideLyftClient(final Gson gson, NetworkConnectivityManager ncm, LyftRequestInterceptor interceptor, LyftErrorHandler errorHandler) {
         Endpoint endpoint = Endpoints.newFixedEndpoint(LyftClient.LYFT_URL);
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setLogLevel(RestAdapter.LogLevel.FULL)

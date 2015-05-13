@@ -8,5 +8,6 @@
     <string name="map_api_key">AIzaSyBrqJqJzuyKp77D1w_a4yNk3-yMZrUf_A0</string>
     <string name="nearby_drivers">Nearby Drivers</string>
     <string name="closest_driver">Closest driver is %,d meters</string>
+    <string name="login_facebook">Login with Facebook</string>
     <string name="login">Login</string>
 </resources>

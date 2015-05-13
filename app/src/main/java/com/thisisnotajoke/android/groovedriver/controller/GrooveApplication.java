@@ -3,7 +3,7 @@ package com.thisisnotajoke.android.groovedriver.controller;
 import android.app.Application;
 
 import com.firebase.client.Firebase;
-import com.thisisnotajoke.android.groovedriver.GuberModule;
+import com.thisisnotajoke.android.groovedriver.GrooveModule;
 
 import dagger.ObjectGraph;
 
@@ -16,8 +16,8 @@ public class GrooveApplication extends Application {
         Firebase.setAndroidContext(this);
     }
 
-    protected GuberModule getModule() {
-        return new GuberModule(this);
+    protected GrooveModule getModule() {
+        return new GrooveModule(this);
     }
 
     private static GrooveApplication instance;

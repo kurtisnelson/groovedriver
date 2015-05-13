@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="my_circle">#4D000000</color>
+    <color name="brand_pink">#9D219F</color>
+    <color name="brand_pink_dark">#951090</color>
+    <color name="brand_blue">#1000E0</color>
 </resources>
