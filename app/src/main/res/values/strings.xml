@@ -8,4 +8,6 @@
     <string name="closest_driver">Closest driver is %,d meters</string>
     <string name="login_facebook">Login with Facebook</string>
     <string name="login">Login</string>
+    <string name="ticker_text">Watching other drivers</string>
+    <string name="notification_title">Tracking Drivers</string>
 </resources>

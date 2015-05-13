@@ -43,7 +43,8 @@ public class SplashActivity extends GrooveActivity {
     private void updateUI() {
         if(mPreferences.hasFbToken()) {
             mLoginButton.setVisibility(View.GONE);
-            startActivity(new Intent(this, NearbyActivity.class));
+            startService(GatherService.newIntent(this));
+            startActivity(NearbyActivity.newIntent(this));
             finish();
         } else {
             mLoginButton.setVisibility(View.VISIBLE);

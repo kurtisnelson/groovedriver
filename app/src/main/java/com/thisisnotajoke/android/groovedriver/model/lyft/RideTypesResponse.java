@@ -1,6 +1,7 @@
 package com.thisisnotajoke.android.groovedriver.model.lyft;
 
 import com.google.gson.annotations.SerializedName;
+import com.thisisnotajoke.android.groovedriver.model.cloud.Location;
 
 import java.util.ArrayList;
 
@@ -15,11 +16,6 @@ public class RideTypesResponse {
     public class Driver {
         public String id;
         public Location location;
-    }
-
-    public class Location {
-        public double lat;
-        public double lng;
     }
 
     public static class UserPayloadResponse {

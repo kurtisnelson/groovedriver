@@ -6,6 +6,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thisisnotajoke.android.groovedriver.controller.AuthActivity;
+import com.thisisnotajoke.android.groovedriver.controller.GatherService;
 import com.thisisnotajoke.android.groovedriver.controller.GrooveApplication;
 import com.thisisnotajoke.android.groovedriver.controller.SplashActivity;
 import com.thisisnotajoke.android.groovedriver.controller.NearbyActivity;
@@ -31,7 +32,9 @@ import org.joda.time.LocalDate;
                 GrooveApplication.class,
                 NearbyActivity.class,
                 AuthActivity.class,
-                SplashActivity.class
+                SplashActivity.class,
+                //services
+                GatherService.class
         },
         complete = true,
         library = false

@@ -1,16 +1,19 @@
 package com.thisisnotajoke.android.groovedriver.controller;
 
-import android.location.Location;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
+import com.firebase.client.ChildEventListener;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -25,64 +28,50 @@ import com.google.maps.android.SphericalUtil;
 import com.thisisnotajoke.android.groovedriver.CloseComparator;
 import com.thisisnotajoke.android.groovedriver.R;
 import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
-import com.thisisnotajoke.android.groovedriver.model.lyft.RideTypesResponse;
-import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
-import com.thisisnotajoke.android.groovedriver.model.lyft.LocationBody;
-import com.thisisnotajoke.android.groovedriver.model.LyftClient;
+import com.thisisnotajoke.android.groovedriver.model.cloud.Location;
 
-import java.util.PriorityQueue;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-
-public class NearbyActivity extends GrooveActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnMapReadyCallback {
+public class NearbyActivity extends GrooveActivity implements OnMapReadyCallback {
 
     private static final String TAG = "NearbyActivity";
     private static final String KEY_CLOSEST = "ClosestDriver";
+    private static final String KEY_FARTHEST = "FarthestDriver";
+
     private TextView mSinceText;
 
-
-    @Inject
-    AppPreferences mPreferences;
-    @Inject
-    LyftClient mLyftClient;
-    @Inject
-    FirebaseClient mFirebaseClient;
-    private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
     private SupportMapFragment mMapFragment;
     private GoogleMap mMap;
     private int CIRCLE_COLOR;
-    private double mClosestDriver;
+    private Double mClosestDriver;
+    private Double mFarthestDriver;
+    private LatLng mMyLocation;
     private boolean mMoveCamera = true;
+    private Map<String, Location> mMarkers = new HashMap<>();
+
+    @Inject
+    FirebaseClient mFirebase;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             mClosestDriver = savedInstanceState.getDouble(KEY_CLOSEST, 0);
+            mFarthestDriver = savedInstanceState.getDouble(KEY_FARTHEST, 1000);
+
         }
         CIRCLE_COLOR = getResources().getColor(R.color.my_circle);
 
         setContentView(R.layout.activity_nearby);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        mGoogleApiClient.connect();
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(20000);
-        mLocationRequest.setFastestInterval(10000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
         mSinceText = (TextView) findViewById(R.id.activity_nearby_closest);
 
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_nearby_map);
-        if(mMapFragment == null) {
+        if (mMapFragment == null) {
             mMapFragment = SupportMapFragment.newInstance();
             getSupportFragmentManager().beginTransaction().add(R.id.activity_nearby_map, mMapFragment).commit();
         }
@@ -90,121 +79,34 @@ public class NearbyActivity extends GrooveActivity implements GoogleApiClient.Co
     }
 
     private void updateUI() {
-        mSinceText.setText(getString(R.string.closest_driver, (int) mClosestDriver));
+        if (mClosestDriver != null)
+            mSinceText.setText(getString(R.string.closest_driver, mClosestDriver.intValue()));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        bindService(GatherService.newIntent(this), mConnection, Context.BIND_AUTO_CREATE);
         updateUI();
-        startLocationUpdates();
+        updateMap();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        stopLocationUpdates();
+        unbindService(mConnection);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putDouble(KEY_CLOSEST, mClosestDriver);
+        outState.putDouble(KEY_FARTHEST, mFarthestDriver);
     }
 
     @Override
     protected boolean usesInjection() {
         return true;
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        startLocationUpdates();
-
-        Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        onLocationChanged(lastLocation);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
-
-    protected void startLocationUpdates() {
-        if(mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-    }
-
-    protected void stopLocationUpdates() {
-        if(mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
-    }
-
-    @Override
-    public void onLocationChanged(final Location location) {
-        if(location == null) {
-            Log.w(TAG, "Null location, probably on an emulator");
-            return;
-        }
-        final LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-        if(mPreferences.hasFbToken()) {
-            LocationBody locationBody = new LocationBody(location.getLatitude(), location.getLongitude());
-            mLyftClient.getNearbyDrivers(locationBody, new Callback<RideTypesResponse>() {
-                @Override
-                public void success(RideTypesResponse rideTypesResponse, Response response) {
-                    mFirebaseClient.saveDrivers(rideTypesResponse.rideTypes);
-                    if(mMap != null) {
-                        mMap.clear();
-                        mMap.addMarker(new MarkerOptions().position(myLocation).flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.cars)));
-                    }
-                    for (RideTypesResponse.RideType rideType : rideTypesResponse.rideTypes) {
-
-                        if (rideType.id.equals("standard")) {
-                            PriorityQueue<LatLng> drivers = new PriorityQueue<>(rideType.drivers.size(), new CloseComparator(myLocation));
-                            LatLng driverLocation;
-                            double farthest = Double.MIN_VALUE;
-                            for (RideTypesResponse.Driver driver : rideType.drivers) {
-                                driverLocation = new LatLng(driver.location.lat, driver.location.lng);
-                                double dist = SphericalUtil.computeDistanceBetween(myLocation, driverLocation);
-                                if(dist > farthest)
-                                    farthest = dist;
-                                drivers.add(driverLocation);
-                                mMap.addMarker(new MarkerOptions().position(driverLocation).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
-                                CircleOptions circle = new CircleOptions();
-                                circle.strokeWidth(0);
-                                circle.fillColor(CIRCLE_COLOR);
-                                circle.center(driverLocation);
-                                circle.radius(dist / 2);
-                                mMap.addCircle(circle);
-                            }
-                            mClosestDriver = SphericalUtil.computeDistanceBetween(myLocation, drivers.peek());
-                            if(mMoveCamera) {
-                                LatLng southeast = SphericalUtil.computeOffset(myLocation, (farthest + mClosestDriver) / 2, 225);
-                                LatLng northwest = SphericalUtil.computeOffset(myLocation, (farthest + mClosestDriver) / 2, 45);
-                                CameraUpdate animate = CameraUpdateFactory.newLatLngBounds(new LatLngBounds(southeast, northwest), 10);
-                                mMap.moveCamera(animate);
-                                mMoveCamera = false;
-                            }
-                            updateUI();
-                            return;
-                        }
-                    }
-                }
-
-                @Override
-                public void failure(RetrofitError error) {
-
-                }
-            });
-        }
     }
 
     @Override
@@ -214,5 +116,121 @@ public class NearbyActivity extends GrooveActivity implements GoogleApiClient.Co
         map.setOnMarkerClickListener(null);
         map.clear();
         mMap = map;
+        mFirebase.getNearbyDrivers(new ChildEventListener() {
+
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                mMarkers.put(dataSnapshot.getKey(), dataSnapshot.getValue(Location.class));
+                updateMap();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                mMarkers.put(dataSnapshot.getKey(), dataSnapshot.getValue(Location.class));
+                updateMap();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                mMarkers.remove(dataSnapshot.getKey());
+                updateMap();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        mFirebase.getLocation(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "New location");
+                Location location = dataSnapshot.getValue(Location.class);
+                mMyLocation = new LatLng(location.lat, location.lng);
+                if (mFarthestDriver == null || mClosestDriver == null)
+                    return;
+                if (mMoveCamera) {
+                    LatLng southeast = SphericalUtil.computeOffset(mMyLocation, (mFarthestDriver + mClosestDriver) / 2, 225);
+                    LatLng northwest = SphericalUtil.computeOffset(mMyLocation, (mFarthestDriver + mClosestDriver) / 2, 45);
+                    CameraUpdate animate = CameraUpdateFactory.newLatLngBounds(new LatLngBounds(southeast, northwest), 10);
+                    mMap.moveCamera(animate);
+                    mMoveCamera = false;
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        mFirebase.getClosestDriver(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mClosestDriver = dataSnapshot.getValue(Double.class);
+                updateUI();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        mFirebase.getFarthestDriver(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mFarthestDriver = dataSnapshot.getValue(Double.class);
+                updateUI();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+    }
+
+    private GatherService mService;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            GatherService.LocalBinder binder = (GatherService.LocalBinder) service;
+            mService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+        }
+    };
+
+    public static Intent newIntent(Context context) {
+        return new Intent(context, NearbyActivity.class);
+    }
+
+    private void updateMap() {
+        if (mMap == null || mMyLocation == null || mMarkers == null)
+            return;
+        mMap.clear();
+        mMap.addMarker(new MarkerOptions().position(mMyLocation).flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.cars)));
+        for (Location location : mMarkers.values()) {
+            LatLng driverLocation = location.toLatLng();
+            double dist = SphericalUtil.computeDistanceBetween(mMyLocation, driverLocation);
+            mMap.addMarker(new MarkerOptions().position(driverLocation).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
+            CircleOptions circle = new CircleOptions();
+            circle.strokeWidth(0);
+            circle.fillColor(CIRCLE_COLOR);
+            circle.center(driverLocation);
+            circle.radius(dist / 2);
+            mMap.addCircle(circle);
+        }
     }
 }

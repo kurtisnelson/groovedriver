@@ -1,5 +1,7 @@
 package com.thisisnotajoke.android.groovedriver.model.lyft;
 
+import com.thisisnotajoke.android.groovedriver.model.cloud.Location;
+
 import java.io.Serializable;
 
 public class LocationBody implements Serializable {
@@ -12,9 +14,4 @@ public class LocationBody implements Serializable {
     }
     String rideType;
     Location location;
-
-    class Location {
-        double lat;
-        double lng;
-    }
 }
