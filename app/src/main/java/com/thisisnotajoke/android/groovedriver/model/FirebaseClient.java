@@ -99,4 +99,8 @@ public class FirebaseClient {
     public void getNearbyDrivers(ChildEventListener listener) {
         privateUserData().child("drivers").addChildEventListener(listener);
     }
+
+    public Firebase getClient() {
+        return mFirebase;
+    }
 }

@@ -4,16 +4,20 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.firebase.client.AuthData;
+import com.firebase.client.Firebase;
 import com.thisisnotajoke.android.groovedriver.R;
 import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
+import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
 
 import javax.inject.Inject;
 
-public class SplashActivity extends GrooveActivity {
+public class SplashActivity extends GrooveActivity implements Firebase.AuthStateListener {
 
-    @Inject
-    AppPreferences mPreferences;
     private View mLoginButton;
+
+    @Inject AppPreferences mPreferences;
+    @Inject FirebaseClient mFirebase;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,6 +31,8 @@ public class SplashActivity extends GrooveActivity {
                 startActivity(AuthActivity.newIntent(SplashActivity.this));
             }
         });
+
+        mFirebase.getClient().addAuthStateListener(this);
     }
 
     @Override
@@ -43,16 +49,24 @@ public class SplashActivity extends GrooveActivity {
     private void updateUI() {
         if(mPreferences.hasFbToken()) {
             mLoginButton.setVisibility(View.GONE);
+        } else {
+            mLoginButton.setVisibility(View.VISIBLE);
+        }
+
+        if(mPreferences.hasFbToken() && mFirebase.getClient().getAuth() != null) {
             startService(GatherService.newIntent(this));
             startActivity(NearbyActivity.newIntent(this));
             finish();
-        } else {
-            mLoginButton.setVisibility(View.VISIBLE);
         }
     }
 
     @Override
     protected boolean usesInjection() {
         return true;
+    }
+
+    @Override
+    public void onAuthStateChanged(AuthData authData) {
+        updateUI();
     }
 }

@@ -25,7 +25,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
-import com.thisisnotajoke.android.groovedriver.CloseComparator;
 import com.thisisnotajoke.android.groovedriver.R;
 import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
 import com.thisisnotajoke.android.groovedriver.model.cloud.Location;
@@ -73,6 +72,7 @@ public class NearbyActivity extends GrooveActivity implements OnMapReadyCallback
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_nearby_map);
         if (mMapFragment == null) {
             mMapFragment = SupportMapFragment.newInstance();
+            mMapFragment.setRetainInstance(true);
             getSupportFragmentManager().beginTransaction().add(R.id.activity_nearby_map, mMapFragment).commit();
         }
         mMapFragment.getMapAsync(this);
@@ -116,6 +116,10 @@ public class NearbyActivity extends GrooveActivity implements OnMapReadyCallback
         map.setOnMarkerClickListener(null);
         map.clear();
         mMap = map;
+        setupFirebaseListeners();
+    }
+
+    private void setupFirebaseListeners() {
         mFirebase.getNearbyDrivers(new ChildEventListener() {
 
             @Override
@@ -202,9 +206,9 @@ public class NearbyActivity extends GrooveActivity implements OnMapReadyCallback
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
             GatherService.LocalBinder binder = (GatherService.LocalBinder) service;
             mService = binder.getService();
+            mService.requestUpdate();
         }
 
         @Override

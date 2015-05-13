@@ -136,6 +136,11 @@ public class GatherService extends Service implements GoogleApiClient.Connection
         hitLyft(location);
     }
 
+    public void requestUpdate() {
+        Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        onLocationChanged(lastLocation);
+    }
+
     public static Intent newIntent(Context context) {
         return new Intent(context, GatherService.class);
     }
