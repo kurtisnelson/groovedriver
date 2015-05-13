@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">GrooveDriver</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="facebook_app_id">1430393550599167</string>
+    <string name="map_api_key">AIzaSyBrqJqJzuyKp77D1w_a4yNk3-yMZrUf_A0</string>
+    <string name="nearby_drivers">Nearby Drivers</string>
+    <string name="closest_driver">Closest driver is %,d meters</string>
+    <string name="login">Login</string>
+</resources>
