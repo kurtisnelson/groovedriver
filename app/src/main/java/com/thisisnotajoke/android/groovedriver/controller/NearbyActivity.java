@@ -24,9 +24,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 import com.thisisnotajoke.android.groovedriver.CloseComparator;
 import com.thisisnotajoke.android.groovedriver.R;
-import com.thisisnotajoke.android.groovedriver.model.RideTypesResponse;
+import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
+import com.thisisnotajoke.android.groovedriver.model.lyft.RideTypesResponse;
 import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
-import com.thisisnotajoke.android.groovedriver.model.LocationBody;
+import com.thisisnotajoke.android.groovedriver.model.lyft.LocationBody;
 import com.thisisnotajoke.android.groovedriver.model.LyftClient;
 
 import java.util.PriorityQueue;
@@ -48,6 +49,8 @@ public class NearbyActivity extends GrooveActivity implements GoogleApiClient.Co
     AppPreferences mPreferences;
     @Inject
     LyftClient mLyftClient;
+    @Inject
+    FirebaseClient mFirebaseClient;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private SupportMapFragment mMapFragment;
@@ -157,11 +160,13 @@ public class NearbyActivity extends GrooveActivity implements GoogleApiClient.Co
             mLyftClient.getNearbyDrivers(locationBody, new Callback<RideTypesResponse>() {
                 @Override
                 public void success(RideTypesResponse rideTypesResponse, Response response) {
+                    mFirebaseClient.saveDrivers(rideTypesResponse.rideTypes);
                     if(mMap != null) {
                         mMap.clear();
                         mMap.addMarker(new MarkerOptions().position(myLocation).flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.cars)));
                     }
                     for (RideTypesResponse.RideType rideType : rideTypesResponse.rideTypes) {
+
                         if (rideType.id.equals("standard")) {
                             PriorityQueue<LatLng> drivers = new PriorityQueue<>(rideType.drivers.size(), new CloseComparator(myLocation));
                             LatLng driverLocation;

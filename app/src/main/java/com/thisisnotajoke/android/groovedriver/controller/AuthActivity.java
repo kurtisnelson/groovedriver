@@ -32,7 +32,7 @@ public class AuthActivity extends GrooveActivity implements AuthenticationServic
     }
 
     public void success() {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, SplashActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

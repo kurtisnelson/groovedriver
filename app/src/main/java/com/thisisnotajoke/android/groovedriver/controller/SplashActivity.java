@@ -9,7 +9,7 @@ import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
 
 import javax.inject.Inject;
 
-public class MainActivity extends GrooveActivity {
+public class SplashActivity extends GrooveActivity {
 
     @Inject
     AppPreferences mPreferences;
@@ -18,13 +18,13 @@ public class MainActivity extends GrooveActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_splash);
         mLoginButton = findViewById(R.id.activity_main_login_button);
 
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(AuthActivity.newIntent(MainActivity.this));
+                startActivity(AuthActivity.newIntent(SplashActivity.this));
             }
         });
     }

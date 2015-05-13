@@ -1,9 +1,8 @@
-package com.thisisnotajoke.android.groovedriver.model;
+package com.thisisnotajoke.android.groovedriver.model.lyft;
 
-/**
- * Created by kurt on 5/4/15.
- */
-public class LocationBody {
+import java.io.Serializable;
+
+public class LocationBody implements Serializable {
 
     public LocationBody(double lat, double lng) {
         rideType = "standard";

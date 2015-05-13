@@ -7,9 +7,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thisisnotajoke.android.groovedriver.controller.AuthActivity;
 import com.thisisnotajoke.android.groovedriver.controller.GrooveApplication;
-import com.thisisnotajoke.android.groovedriver.controller.MainActivity;
+import com.thisisnotajoke.android.groovedriver.controller.SplashActivity;
 import com.thisisnotajoke.android.groovedriver.controller.NearbyActivity;
 import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
+import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
 import com.thisisnotajoke.android.groovedriver.model.LyftClient;
 
 import javax.inject.Singleton;
@@ -30,7 +31,7 @@ import org.joda.time.LocalDate;
                 GrooveApplication.class,
                 NearbyActivity.class,
                 AuthActivity.class,
-                MainActivity.class
+                SplashActivity.class
         },
         complete = true,
         library = false
@@ -75,6 +76,12 @@ public final class GuberModule {
     }
 
     @Provides
+    @Singleton
+    FirebaseClient provideFirebaseClient() {
+        return new FirebaseClient();
+    }
+
+    @Provides
     LyftRequestInterceptor provideRequestInterceptor(AppPreferences preferences) {
         return new LyftRequestInterceptor(preferences);
     }
@@ -85,8 +92,8 @@ public final class GuberModule {
     }
 
     @Provides
-    AppPreferences provideAppPreferences(Context context) {
-        return new AppPreferences(context);
+    AppPreferences provideAppPreferences(Context context, FirebaseClient firebase) {
+        return new AppPreferences(context, firebase);
     }
 
     @Provides
