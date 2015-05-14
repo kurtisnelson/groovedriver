@@ -11,7 +11,7 @@ import com.thisisnotajoke.android.groovedriver.controller.GrooveApplication;
 import com.thisisnotajoke.android.groovedriver.controller.SplashActivity;
 import com.thisisnotajoke.android.groovedriver.controller.NearbyActivity;
 import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
-import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
+import com.thisisnotajoke.android.groovedriver.model.DataStore;
 import com.thisisnotajoke.android.groovedriver.model.LyftClient;
 
 import javax.inject.Singleton;
@@ -80,8 +80,8 @@ public final class GrooveModule {
 
     @Provides
     @Singleton
-    FirebaseClient provideFirebaseClient() {
-        return new FirebaseClient();
+    DataStore provideFirebaseClient() {
+        return new DataStore();
     }
 
     @Provides
@@ -95,7 +95,7 @@ public final class GrooveModule {
     }
 
     @Provides
-    AppPreferences provideAppPreferences(Context context, FirebaseClient firebase) {
+    AppPreferences provideAppPreferences(Context context, DataStore firebase) {
         return new AppPreferences(context, firebase);
     }
 

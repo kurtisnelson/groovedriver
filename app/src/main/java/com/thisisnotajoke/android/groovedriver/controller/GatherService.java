@@ -22,7 +22,7 @@ import com.thisisnotajoke.android.groovedriver.CloseComparator;
 import com.thisisnotajoke.android.groovedriver.InjectionUtils;
 import com.thisisnotajoke.android.groovedriver.R;
 import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
-import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
+import com.thisisnotajoke.android.groovedriver.model.DataStore;
 import com.thisisnotajoke.android.groovedriver.model.LyftClient;
 import com.thisisnotajoke.android.groovedriver.model.lyft.LocationBody;
 import com.thisisnotajoke.android.groovedriver.model.lyft.RideTypesResponse;
@@ -46,7 +46,7 @@ public class GatherService extends Service implements GoogleApiClient.Connection
     @Inject
     LyftClient mLyftClient;
     @Inject
-    FirebaseClient mFirebaseClient;
+    DataStore mDataStore;
 
     private final IBinder mBinder = new LocalBinder();
 
@@ -129,10 +129,10 @@ public class GatherService extends Service implements GoogleApiClient.Connection
     public void onLocationChanged(final Location location) {
         if (location == null) {
             Log.w(TAG, "Null location, probably on an emulator");
-            mFirebaseClient.setLocation(null);
+            mDataStore.setLocation(null);
             return;
         }
-        mFirebaseClient.setLocation(new com.thisisnotajoke.android.groovedriver.model.cloud.Location(location));
+        mDataStore.setLocation(new com.thisisnotajoke.android.groovedriver.model.cloud.Location(location));
         hitLyft(location);
     }
 
@@ -164,7 +164,7 @@ public class GatherService extends Service implements GoogleApiClient.Connection
             mLyftClient.getNearbyDrivers(locationBody, new Callback<RideTypesResponse>() {
                 @Override
                 public void success(RideTypesResponse rideTypesResponse, Response response) {
-                    mFirebaseClient.saveDrivers(rideTypesResponse.rideTypes);
+                    mDataStore.saveDrivers(rideTypesResponse.rideTypes);
 
                     for (RideTypesResponse.RideType rideType : rideTypesResponse.rideTypes) {
 
@@ -180,9 +180,9 @@ public class GatherService extends Service implements GoogleApiClient.Connection
                                 drivers.add(driverLocation);
                             }
                             double closestDriver = SphericalUtil.computeDistanceBetween(myLocation, drivers.peek());
-                            mFirebaseClient.setClosestDriver(closestDriver);
-                            mFirebaseClient.setFarthestDriver(farthest);
-                            mFirebaseClient.setNearbyDrivers(drivers);
+                            mDataStore.setClosestDriver(closestDriver);
+                            mDataStore.setFarthestDriver(farthest);
+                            mDataStore.setNearbyDrivers(drivers);
                             return;
                         }
                     }

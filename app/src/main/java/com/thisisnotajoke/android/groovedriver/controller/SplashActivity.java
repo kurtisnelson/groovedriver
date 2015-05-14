@@ -8,7 +8,7 @@ import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.thisisnotajoke.android.groovedriver.R;
 import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
-import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
+import com.thisisnotajoke.android.groovedriver.model.DataStore;
 
 import javax.inject.Inject;
 
@@ -17,7 +17,8 @@ public class SplashActivity extends GrooveActivity implements Firebase.AuthState
     private View mLoginButton;
 
     @Inject AppPreferences mPreferences;
-    @Inject FirebaseClient mFirebase;
+    @Inject
+    DataStore mFirebase;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

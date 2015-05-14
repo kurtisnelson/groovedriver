@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-public class FirebaseClient {
+public class DataStore {
     private static final String FIREBASE_NAME = "blinding-fire-9814";
-    private static final String TAG = "FirebaseClient";
+    private static final String TAG = "DataStore";
     private final Firebase mFirebase;
 
-    public FirebaseClient() {
+    public DataStore() {
         mFirebase = new Firebase("https://"+FIREBASE_NAME+".firebaseio.com/");
     }
 

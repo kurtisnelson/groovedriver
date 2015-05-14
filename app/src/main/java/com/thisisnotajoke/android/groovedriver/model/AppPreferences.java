@@ -8,9 +8,9 @@ public class AppPreferences {
     private static final String PREF_NAME = "groovedriver";
     private static final String KEY_FB_TOKEN = "fbtoken";
     private final SharedPreferences mPreferences;
-    private final FirebaseClient mFirebase;
+    private final DataStore mFirebase;
 
-    public AppPreferences(Context context, FirebaseClient firebase) {
+    public AppPreferences(Context context, DataStore firebase) {
         mPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         mFirebase = firebase;
     }

@@ -26,7 +26,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 import com.thisisnotajoke.android.groovedriver.R;
-import com.thisisnotajoke.android.groovedriver.model.FirebaseClient;
+import com.thisisnotajoke.android.groovedriver.model.DataStore;
 import com.thisisnotajoke.android.groovedriver.model.cloud.Location;
 
 import java.util.HashMap;
@@ -52,7 +52,7 @@ public class NearbyActivity extends GrooveActivity implements OnMapReadyCallback
     private Map<String, Location> mMarkers = new HashMap<>();
 
     @Inject
-    FirebaseClient mFirebase;
+    DataStore mFirebase;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
