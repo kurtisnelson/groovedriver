@@ -8,6 +8,7 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.model.LatLng;
+import com.rollbar.android.Rollbar;
 import com.thisisnotajoke.android.groovedriver.model.cloud.DriverPosition;
 import com.thisisnotajoke.android.groovedriver.model.cloud.Location;
 import com.thisisnotajoke.android.groovedriver.model.lyft.RideTypesResponse;
@@ -23,9 +24,11 @@ public class DataStore {
     private static final String FIREBASE_NAME = "blinding-fire-9814";
     private static final String TAG = "DataStore";
     private final Firebase mFirebase;
+    private final AppPreferences mPreferences;
 
-    public DataStore() {
+    public DataStore(AppPreferences preferences) {
         mFirebase = new Firebase("https://"+FIREBASE_NAME+".firebaseio.com/");
+        mPreferences = preferences;
     }
 
     public void saveDrivers(ArrayList<RideTypesResponse.RideType> rideTypes) {
@@ -42,19 +45,22 @@ public class DataStore {
         }
     }
 
-    public void facebookLogin(String token) {
+    public void facebookLogin(final String token) {
+        mPreferences.setFbToken(token);
         if(token == null) {
             mFirebase.unauth();
         } else {
             mFirebase.authWithOAuthToken("facebook", token, new Firebase.AuthResultHandler() {
                 @Override
                 public void onAuthenticated(AuthData authData) {
-
+                    Rollbar.setPersonData(authData.getUid(), "", "");
                 }
 
                 @Override
                 public void onAuthenticationError(FirebaseError firebaseError) {
-                    Log.e(TAG, "Could not authenticate to firebase with facebook");
+                    Log.e(TAG, "Could not authenticate to firebase with facebook: " + firebaseError.getMessage());
+                    mPreferences.setFbToken(null);
+                    mFirebase.unauth();
                 }
             });
         }
@@ -102,5 +108,9 @@ public class DataStore {
 
     public Firebase getClient() {
         return mFirebase;
+    }
+
+    public boolean isLoggedIn() {
+        return mPreferences.hasFbToken() && mFirebase.getAuth() != null;
     }
 }

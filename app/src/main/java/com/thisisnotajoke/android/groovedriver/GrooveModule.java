@@ -80,8 +80,8 @@ public final class GrooveModule {
 
     @Provides
     @Singleton
-    DataStore provideFirebaseClient() {
-        return new DataStore();
+    DataStore provideFirebaseClient(AppPreferences preferences) {
+        return new DataStore(preferences);
     }
 
     @Provides
@@ -95,8 +95,8 @@ public final class GrooveModule {
     }
 
     @Provides
-    AppPreferences provideAppPreferences(Context context, DataStore firebase) {
-        return new AppPreferences(context, firebase);
+    AppPreferences provideAppPreferences(Context context) {
+        return new AppPreferences(context);
     }
 
     @Provides

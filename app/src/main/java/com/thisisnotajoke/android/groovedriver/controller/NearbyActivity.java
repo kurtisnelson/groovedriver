@@ -155,9 +155,10 @@ public class NearbyActivity extends GrooveActivity implements OnMapReadyCallback
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "New location");
                 Location location = dataSnapshot.getValue(Location.class);
-                mMyLocation = new LatLng(location.lat, location.lng);
-                if (mFarthestDriver == null || mClosestDriver == null)
+                if (mFarthestDriver == null || mClosestDriver == null || location == null)
                     return;
+                mMyLocation = new LatLng(location.lat, location.lng);
+
                 if (mMoveCamera) {
                     LatLng southeast = SphericalUtil.computeOffset(mMyLocation, (mFarthestDriver + mClosestDriver) / 2, 225);
                     LatLng northwest = SphericalUtil.computeOffset(mMyLocation, (mFarthestDriver + mClosestDriver) / 2, 45);

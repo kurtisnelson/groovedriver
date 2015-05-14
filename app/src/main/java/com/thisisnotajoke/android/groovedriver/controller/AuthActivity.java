@@ -8,20 +8,24 @@ import android.webkit.WebView;
 
 import com.thisisnotajoke.android.groovedriver.R;
 import com.thisisnotajoke.android.groovedriver.model.AppPreferences;
+import com.thisisnotajoke.android.groovedriver.model.DataStore;
 
 import javax.inject.Inject;
 
 public class AuthActivity extends GrooveActivity implements AuthenticationService.TokenCallback {
     @Inject
-    AppPreferences mPreferences;
+    DataStore mDataStore;
+    @Inject AppPreferences mAppPreferences;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth);
 
-        if(mPreferences.hasFbToken()) {
+        if(mDataStore.isLoggedIn()) {
             success();
+        } else if (mAppPreferences.hasFbToken()){
+            token(mAppPreferences.getFbToken());
         } else {
             AuthenticationService auth = new AuthenticationService(this);
             findViewById(R.id.activity_auth_progress).setVisibility(View.GONE);
@@ -45,7 +49,7 @@ public class AuthActivity extends GrooveActivity implements AuthenticationServic
 
     @Override
     public void token(String token) {
-        mPreferences.setFbToken(token);
+        mDataStore.facebookLogin(token);
         success();
     }
 
