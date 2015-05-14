@@ -17,8 +17,7 @@ public class SplashActivity extends GrooveActivity implements Firebase.AuthState
     private View mLoginButton;
 
     @Inject AppPreferences mPreferences;
-    @Inject
-    DataStore mFirebase;
+    @Inject DataStore mFirebase;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,16 +49,17 @@ public class SplashActivity extends GrooveActivity implements Firebase.AuthState
     private void updateUI() {
         if(mPreferences.hasFbToken()) {
             mLoginButton.setVisibility(View.GONE);
+            if(mFirebase.getClient().getAuth() == null) {
+                mFirebase.facebookLogin(mPreferences.getFbToken());
+            } else {
+                startService(GatherService.newIntent(this));
+                Intent nearIntent = NearbyActivity.newIntent(this);
+                nearIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(nearIntent);
+                finish();
+            }
         } else {
             mLoginButton.setVisibility(View.VISIBLE);
-        }
-
-        if(mPreferences.hasFbToken() && mFirebase.getClient().getAuth() != null) {
-            startService(GatherService.newIntent(this));
-            Intent nearIntent = NearbyActivity.newIntent(this);
-            nearIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(nearIntent);
-            finish();
         }
     }
 
