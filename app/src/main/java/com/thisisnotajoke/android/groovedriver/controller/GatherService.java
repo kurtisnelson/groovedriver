@@ -77,7 +77,7 @@ public class GatherService extends Service implements GoogleApiClient.Connection
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getAction() != null && intent.getAction().equals("STOP")) {
+        if (intent != null && intent.getAction() != null && intent.getAction().equals("STOP")) {
             stopForeground(true);
             stopSelf();
         }
